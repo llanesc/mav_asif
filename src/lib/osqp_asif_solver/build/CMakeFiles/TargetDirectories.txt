@@ -1,0 +1,7 @@
+/home/llanesc/px4_ros_com_ros2/src/mav_asif/src/lib/osqp_asif_solver/build/CMakeFiles/rebuild_cache.dir
+/home/llanesc/px4_ros_com_ros2/src/mav_asif/src/lib/osqp_asif_solver/build/CMakeFiles/edit_cache.dir
+/home/llanesc/px4_ros_com_ros2/src/mav_asif/src/lib/osqp_asif_solver/build/CMakeFiles/emosqpstatic.dir
+/home/llanesc/px4_ros_com_ros2/src/mav_asif/src/lib/osqp_asif_solver/build/src/osqp/CMakeFiles/rebuild_cache.dir
+/home/llanesc/px4_ros_com_ros2/src/mav_asif/src/lib/osqp_asif_solver/build/src/osqp/CMakeFiles/edit_cache.dir
+/home/llanesc/px4_ros_com_ros2/src/mav_asif/src/lib/osqp_asif_solver/build/include/CMakeFiles/rebuild_cache.dir
+/home/llanesc/px4_ros_com_ros2/src/mav_asif/src/lib/osqp_asif_solver/build/include/CMakeFiles/edit_cache.dir
