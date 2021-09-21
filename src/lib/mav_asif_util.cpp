@@ -102,11 +102,13 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
 
     Matrix<double, 1, NUM_STATES> DPsi_backup = logsumexp_gradient * QMatrix_backup;
 
-    double q_new[NUM_CONTROL_INPUTS] = {-controls1->thrust_body[2] * quad1_max_thrust_body_,
-                                        -controls2->thrust_body[2] * quad2_max_thrust_body_, -controls1->roll,
+    double q_new[NUM_CONTROL_INPUTS] = {controls1->thrust_body[2] * quad1_max_thrust_body_,
+                                        controls2->thrust_body[2] * quad2_max_thrust_body_,
+                                        -controls1->roll,
                                         -controls2->roll};
-    double warm_x[NUM_CONTROL_INPUTS] = {controls1->thrust_body[2] * quad1_max_thrust_body_,
-                                         controls2->thrust_body[2] * quad2_max_thrust_body_, controls1->roll,
+    double warm_x[NUM_CONTROL_INPUTS] = {-controls1->thrust_body[2] * quad1_max_thrust_body_,
+                                         -controls2->thrust_body[2] * quad2_max_thrust_body_,
+                                         controls1->roll,
                                          controls2->roll};
     double ub_new[POWER_OF_TWO(NUM_DISTURBANCES)];
     double A_new[NUM_CONTROL_INPUTS * POWER_OF_TWO(NUM_DISTURBANCES)];
@@ -146,10 +148,10 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
         return -1;
     }
 
-    controls1->thrust_body[2] = osqp_workspace->solution->x[0] / quad1_max_thrust_body_;
+    controls1->thrust_body[2] = -(osqp_workspace->solution->x[0] - quad1_min_thrust_body_) / (quad1_max_thrust_body_ - quad1_min_thrust_body_);
     controls1->roll = osqp_workspace->solution->x[2];
 
-    controls2->thrust_body[2] = osqp_workspace->solution->x[1] / quad1_max_thrust_body_;
+    controls2->thrust_body[2] = -(osqp_workspace->solution->x[1] - quad2_min_thrust_body_) / (quad2_max_thrust_body_ - quad2_min_thrust_body_);
     controls2->roll = osqp_workspace->solution->x[3];
 
 

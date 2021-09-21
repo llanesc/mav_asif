@@ -66,13 +66,28 @@ target_include_directories(mav2_asif_node PUBLIC
         )
 target_link_libraries(mav2_asif_node Eigen3::Eigen ${rclcpp_LIBRARIES} mav_asif_util ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
-install(TARGETS mav1_asif_node mav2_asif_node
+add_executable(mav1_test src/mav1_test.cpp)
+ament_target_dependencies(mav1_test Eigen3 rclcpp px4_msgs px4_ros_com)
+target_include_directories(mav1_test PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+        ${Eigen3_INCLUDE_DIRS}
+        ${OSQP_INCLUDE_DIRS}
+        )
+target_link_libraries(mav1_test Eigen3::Eigen ${rclcpp_LIBRARIES} mav_asif_util ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+
+install(TARGETS mav1_asif_node mav2_asif_node mav1_test
         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
         config
         DESTINATION share/${PROJECT_NAME}
-        )
+)
+
+install(DIRECTORY
+        launch
+        DESTINATION share/${PROJECT_NAME}
+)
 
 ## INSTALL ##
 #ament_export_dependencies(ament_cmake rclcpp rosidl_default_runtime eigen3_cmake_module Eigen3 px4_msgs)

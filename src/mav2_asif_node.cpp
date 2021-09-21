@@ -38,6 +38,8 @@ public:
         this->declare_parameter("backup_dynamics.pitch_yaw_kp");
         this->declare_parameter("quad1_max_thrust_body");
         this->declare_parameter("quad2_max_thrust_body");
+        this->declare_parameter("quad1_min_thrust_body");
+        this->declare_parameter("quad2_min_thrust_body");
 
         try {
             this->get_parameter("mass1", mass1_);
@@ -54,6 +56,8 @@ public:
             this->get_parameter("backup_dynamics.pitch_yaw_kp", pitch_yaw_kp_);
             this->get_parameter("quad1_max_thrust_body", quad1_max_thrust_body_);
             this->get_parameter("quad2_max_thrust_body", quad2_max_thrust_body_);
+            this->get_parameter("quad1_min_thrust_body", quad1_min_thrust_body_);
+            this->get_parameter("quad2_min_thrust_body", quad2_min_thrust_body_);
         } catch (rclcpp::ParameterTypeException &excp) {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Parameter type exception caught");
             rclcpp::shutdown(nullptr, "ASIF ERROR: Parameter type exception caught on initialization");
@@ -144,6 +148,8 @@ private:
     double safe_displacement_z_;
     double quad1_max_thrust_body_;
     double quad2_max_thrust_body_;
+    double quad1_min_thrust_body_;
+    double quad2_min_thrust_body_;
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::TimerBase::SharedPtr asif_activate_timer_;
@@ -240,11 +246,10 @@ void Mav2ASIF::geometric_controller(const Eigen::Vector4d &mav1_des,
 //	std::cout << eulers1 << std::endl;
 //	std::cout << phi1_cmd << std::endl;
 //	std::cout << theta1_cmd << std::endl;
-
-    control1.thrust_body[2] = (-f_cmd_x1 * cos(eulers1.x()) * sin(eulers1.y()) + f_cmd_y1 * sin(eulers1.x())
-                               - f_cmd_z1 * cos(eulers1.x()) * cos(eulers1.y())) / quad1_max_thrust_body_;
-    control2.thrust_body[2] = (-f_cmd_x2 * cos(eulers2.x()) * sin(eulers2.y()) + f_cmd_y2 * sin(eulers2.x())
-                               - f_cmd_z2 * cos(eulers2.x()) * cos(eulers2.y())) / quad2_max_thrust_body_;
+    control1.thrust_body[2] = -(-f_cmd_x1 * cos(eulers1.x()) * sin(eulers1.y()) + f_cmd_y1 * sin(eulers1.x())
+                                - f_cmd_z1 * cos(eulers1.x()) * cos(eulers1.y()) - quad1_min_thrust_body_) / (quad1_max_thrust_body_ - quad1_min_thrust_body_);
+    control2.thrust_body[2] = -(-f_cmd_x2 * cos(eulers2.x()) * sin(eulers2.y()) + f_cmd_y2 * sin(eulers2.x())
+                                - f_cmd_z2 * cos(eulers2.x()) * cos(eulers2.y()) - quad2_min_thrust_body_) / (quad2_max_thrust_body_ - quad2_min_thrust_body_);
 
     control1.roll = -roll_kp_ * (eulers1.x() - phi1_cmd);
     control2.roll = -roll_kp_ * (eulers2.x() - phi2_cmd);

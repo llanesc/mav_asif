@@ -1,25 +1,27 @@
 asif_node:
   ros__parameters:
-    mass1: 1.535
-    mass2: 1.535
+    mass1: 0.72734
+    mass2: 0.72734
     gravity: 9.80665
-    asif_alpha: 10000.0
+    asif_alpha: 1000.0
     safe_displacement:
       y: 1.0
       z: 1.0
     backup_dynamics:
-      spring_constant: 5.0
-      spring_dampener: 3.0
+      spring_constant: 50.0
+      spring_dampener: 5.0
       spring_saturation: 0.06
-      roll_P: 3.0
-    quad1_max_thrust_body: -28.5 #Thrust in forward-right-down body frame Z-axis
-    quad2_max_thrust_body: -28.5 #Thrust in forward-right-down body frame Z-axis
-    disturbance_min: [-0.000000005,-0.000000005,-0.000005,-0.000005, 0.0, 0.0]
-    disturbance_max: [ 0.000000005, 0.000000005, 0.000005, 0.000005, 0.0, 0.0]
-    lyapunov_function_P_matrix: [1.1803841,-0.74772302,-3.3854398e-16,-2.2033681e-16,3.1603065,-2.3240172,-1.3894815,-4.6903261e-16,-0.74772302,1.1803841,3.3854398e-16,2.2033681e-16,-2.3240172,3.1603065,1.3894815,4.6903261e-16,-3.3854398e-16,3.3854398e-16,0.91034028,-0.65450694,-3.6557528e-16,3.6557528e-16,1.3492519e-15,-1.2791667,-2.2033681e-16,2.2033681e-16,-0.65450694,0.91034028,-7.4066387e-16,7.4066387e-16,4.0442062e-16,1.2791667,3.1603065,-2.3240172,-3.6557528e-16,-7.4066387e-16,10.49734,-7.596941,-4.1814466,-1.5087771e-15,-2.3240172,3.1603065,3.6557528e-16,7.4066387e-16,-7.596941,10.49734,4.1814466,1.5087771e-15,-1.3894815,1.3894815,1.3492519e-15,4.0442062e-16,-4.1814466,4.1814466,2.8278963,8.7896411e-16,-4.6903261e-16,4.6903261e-16,-1.2791667,1.2791667,-1.5087771e-15,1.5087771e-15,8.7896411e-16,2.8058333]
-    barrier_function_constant: 0.0396
+      roll_P: 8.0
+    quad1_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
+    quad1_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
+    quad2_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
+    quad2_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
+    disturbance_min: [-0.0000000005,-0.0000000005,-0.0000005,-0.0000005, 0.0, 0.0]
+    disturbance_max: [ 0.0000000005, 0.0000000005, 0.0000005, 0.0000005, 0.0, 0.0]
+    lyapunov_function_P_matrix: [0.20144052,-0.030465978,0.0,0.0,0.11424094,-0.025081331,-0.14065411,0.0,-0.030465978,0.20144052,0.0,0.0,-0.025081331,0.11424094,0.14065411,0.0,0.0,0.0,0.081551058,-0.0088170579,0.0,0.0,0.0,-0.060611667,0.0,0.0,-0.0088170579,0.081551058,0.0,0.0,0.0,0.060611667,0.11424094,-0.025081331,0.0,0.0,0.20254012,-0.03074548,-0.074299675,0.0,-0.025081331,0.11424094,0.0,0.0,-0.03074548,0.20254012,0.074299675,0.0,-0.14065411,0.14065411,0.0,0.0,-0.074299675,0.074299675,0.8854516,0.0,0.0,0.0,-0.060611667,0.060611667,0.0,0.0,0.0,0.78940067]
+    barrier_function_constant: 0.05
     simulation:
-      backup_horizon: 500
+      backup_horizon: 200
       dt_backup: 0.01
     log_distribution_parameters:
       log_distribution_steps: 9
@@ -30,38 +32,42 @@ asif_node:
 
 mav1_node:
   ros__parameters:
-    mass1: 1.535
-    mass2: 1.535
+    mass1: 0.72734
+    mass2: 0.72734
     gravity: 9.80665
     safe_displacement:
       y: 1.0
       z: 1.0
     backup_dynamics:
-      spring_constantX: 30.0
-      spring_constantYZ: 15.0
-      spring_dampenerX: 7.0
+      spring_constantX: 100.0
+      spring_constantYZ: 30.0
+      spring_dampenerX: 6.0
       spring_dampenerYZ: 5.0
-      spring_saturation: 0.06
-      roll_kp: 10.0
-      pitch_yaw_kp: 10.0
-    quad1_max_thrust_body: -28.5 #Thrust in forward-right-down body frame Z-axis
-    quad2_max_thrust_body: -28.5 #Thrust in forward-right-down body frame Z-axis
+      spring_saturation: 0.03
+      roll_kp: 6.0
+      pitch_yaw_kp: 6.0
+    quad1_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
+    quad1_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
+    quad2_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
+    quad2_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
 
 mav2_node:
   ros__parameters:
-    mass1: 1.535
-    mass2: 1.535
+    mass1: 0.72734
+    mass2: 0.72734
     gravity: 9.80665
     safe_displacement:
       y: 1.0
       z: 1.0
     backup_dynamics:
-      spring_constantX: 30.0
-      spring_constantYZ: 15.0
-      spring_dampenerX: 7.0
+      spring_constantX: 100.0
+      spring_constantYZ: 30.0
+      spring_dampenerX: 6.0
       spring_dampenerYZ: 5.0
-      spring_saturation: 0.06
-      roll_kp: 10.0
-      pitch_yaw_kp: 10.0
-    quad1_max_thrust_body: -28.5 #Thrust in forward-right-down body frame Z-axis
-    quad2_max_thrust_body: -28.5 #Thrust in forward-right-down body frame Z-axis
+      spring_saturation: 0.03
+      roll_kp: 6.0
+      pitch_yaw_kp: 6.0
+    quad1_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
+    quad1_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
+    quad2_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
+    quad2_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis

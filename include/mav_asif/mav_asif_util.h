@@ -144,6 +144,8 @@ public:
 			this->declare_parameter("backup_dynamics.roll_P");
 			this->declare_parameter("quad1_max_thrust_body");
 			this->declare_parameter("quad2_max_thrust_body");
+            this->declare_parameter("quad1_min_thrust_body");
+            this->declare_parameter("quad2_min_thrust_body");
 			this->declare_parameter("disturbance_min");
 			this->declare_parameter("disturbance_max");
 			this->declare_parameter("lyapunov_function_P_matrix");
@@ -167,6 +169,8 @@ public:
 			this->get_parameter("backup_dynamics.roll_P", k_roll_P_);
 			this->get_parameter("quad1_max_thrust_body", quad1_max_thrust_body_);
 			this->get_parameter("quad2_max_thrust_body", quad2_max_thrust_body_);
+            this->get_parameter("quad1_min_thrust_body", quad1_min_thrust_body_);
+            this->get_parameter("quad2_min_thrust_body", quad2_min_thrust_body_);
 			this->get_parameter("disturbance_min", w_min_tmp);
 			this->get_parameter("disturbance_max", w_max_tmp);
 			this->get_parameter("lyapunov_function_P_matrix", lyapunov_function_P_matrix_tmp);
@@ -211,6 +215,8 @@ private:
 	double safe_displacement_z_;
 	double quad1_max_thrust_body_;
 	double quad2_max_thrust_body_;
+    double quad1_min_thrust_body_;
+    double quad2_min_thrust_body_;
 
 	disturbance_vector_t w_min_;
 	disturbance_vector_t w_max_;

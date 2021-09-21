@@ -79,21 +79,20 @@ public:
 				                                                   });
 		mav1_estimator_odometry_subscriber_ =
 				this->create_subscription<VehicleOdometry>(mav1_namespace_ + "fmu/vehicle_odometry/out", 10,
-				                                           [this](const VehicleOdometry::SharedPtr msg)
-				                                           {
-                                                               mav1_ = *msg;
-				                                           });
-		mav2_estimator_odometry_subscriber_ =
-				this->create_subscription<VehicleOdometry>(mav2_namespace_ + "fmu/vehicle_odometry/out", 10,
 				                                           [this](const VehicleOdometry::UniquePtr msg)
 				                                           {
-					                                           mav2_ = *msg;
+					                                           mav1_ = *msg;
 				                                           });
+//		mav2_estimator_odometry_subscriber_ =
+//				this->create_subscription<VehicleOdometry>(mav2_namespace_ + "fmu/vehicle_odometry/out", 10,
+//				                                           [this](const VehicleOdometry::UniquePtr msg)
+//				                                           {
+//					                                           mav2_ = *msg;
+//				                                           });
 		offboard_setpoint_counter_ = 0;
 
 		mav1_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
 		mav2_des_ << 0.0, 1.0, -1.0, 0.0; //x, y, z, yaw
-
 
 		auto timer_callback = [this]() -> void
 		{
@@ -108,12 +107,13 @@ public:
 
 			// offboard_control_mode needs to be paired with trajectory_setpoint
 			publish_offboard_control_mode();
-			if (asif_active_) {
-				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
-				asif_solver_.QP(&workspace, mav1_, mav2_, &control1_, &control2_);
-			} else {
-				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
-			}
+//			if (asif_active_) {
+//				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
+//				asif_solver_.QP(&workspace, mav1_, mav2_, &control1_, &control2_);
+//			} else {
+//				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
+//			}
+            geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
 
 			control1_.timestamp = timestamp_.load();
 			vehicle_rates_setpoint_publisher_->publish(control1_);
@@ -127,14 +127,14 @@ public:
 
 		auto asif_activate_callback = [this]() -> void
 		{
-			mav1_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
+			mav1_des_ << 0.0, -1.0, -1.0, 0.0; //x, y, z, yaw
 			mav2_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
 			asif_active_ = true;
 			asif_activate_timer_->cancel();
 			asif_activate_timer_->reset();
 		};
 
-		asif_activate_timer_ = this->create_wall_timer(30s, asif_activate_callback);
+        asif_activate_timer_ = this->create_wall_timer(30s, asif_activate_callback);
 	}
 
 	void arm() const;
@@ -160,17 +160,14 @@ private:
     double quad2_min_thrust_body_;
 
 	rclcpp::TimerBase::SharedPtr timer_;
-	rclcpp::TimerBase::SharedPtr asif_activate_timer_;
+    rclcpp::TimerBase::SharedPtr asif_activate_timer_;
 
 	rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_control_mode_publisher_;
 	rclcpp::Publisher<VehicleRatesSetpoint>::SharedPtr vehicle_rates_setpoint_publisher_;
 	rclcpp::Publisher<VehicleCommand>::SharedPtr vehicle_command_publisher_;
 
 	rclcpp::Subscription<VehicleOdometry>::SharedPtr mav1_estimator_odometry_subscriber_;
-	rclcpp::Subscription<VehicleOdometry>::SharedPtr mav2_estimator_odometry_subscriber_;
 	rclcpp::Subscription<px4_msgs::msg::Timesync>::SharedPtr timesync_sub_;
-
-    rclcpp::SerializedMessage mav1_serialized_msg_;
 
 	std::atomic<uint64_t> timestamp_;
 
@@ -205,23 +202,23 @@ void Mav1ASIF::geometric_controller(const Eigen::Vector4d &mav1_des,
                                     VehicleRatesSetpoint &control1,
                                     VehicleRatesSetpoint &control2)
 {
-    double f_cmd_x1 = spring_constantX_ * tanh(spring_saturation_ * (mav1_des.x() - mav1_.x)) -
-                      spring_dampenerX_ * mav1_.vx;
-    double f_cmd_x2 = spring_constantX_ * tanh(spring_saturation_ * (mav2_des.x() - mav2_.x)) -
-                      spring_dampenerX_ * mav2_.vx;
-    double f_cmd_y1 = spring_constantYZ_ * tanh(spring_saturation_ * (mav1_des.y() - mav1_.y)) -
-                      spring_dampenerYZ_ * mav1_.vy;
-    double f_cmd_y2 = spring_constantYZ_ * tanh(spring_saturation_ * (mav2_des.y() - mav2_.y)) -
-                      spring_dampenerYZ_ * mav2_.vy;
-    double f_cmd_z1 = spring_constantYZ_ * tanh(spring_saturation_ * (mav1_des.z() - mav1_.z)) - mass1_ * gravity_ -
-                      spring_dampenerYZ_ * mav1_.vz;
-    double f_cmd_z2 = spring_constantYZ_ * tanh(spring_saturation_ * (mav2_des.z() - mav2_.z)) - mass2_ * gravity_ -
-                      spring_dampenerYZ_ * mav2_.vz;
+	double f_cmd_x1 = spring_constantX_ * tanh(spring_saturation_ * (mav1_des.x() - mav1_.x)) -
+			spring_dampenerX_ * mav1_.vx;
+	double f_cmd_x2 = spring_constantX_ * tanh(spring_saturation_ * (mav2_des.x() - mav2_.x)) -
+            spring_dampenerX_ * mav2_.vx;
+	double f_cmd_y1 = spring_constantYZ_ * tanh(spring_saturation_ * (mav1_des.y() - mav1_.y)) -
+            spring_dampenerYZ_ * mav1_.vy;
+	double f_cmd_y2 = spring_constantYZ_ * tanh(spring_saturation_ * (mav2_des.y() - mav2_.y)) -
+            spring_dampenerYZ_ * mav2_.vy;
+	double f_cmd_z1 = spring_constantYZ_ * tanh(spring_saturation_ * (mav1_des.z() - mav1_.z)) - mass1_ * gravity_ -
+            spring_dampenerYZ_ * mav1_.vz;
+	double f_cmd_z2 = spring_constantYZ_ * tanh(spring_saturation_ * (mav2_des.z() - mav2_.z)) - mass2_ * gravity_ -
+            spring_dampenerYZ_ * mav2_.vz;
 
-    Eigen::Vector3d thrust_dir1{f_cmd_x1, f_cmd_y1, f_cmd_z1};
-    Eigen::Vector3d thrust_dir2{f_cmd_x2, f_cmd_y2, f_cmd_z2};
-    thrust_dir1.normalize();
-    thrust_dir2.normalize();
+	Eigen::Vector3d thrust_dir1{f_cmd_x1, f_cmd_y1, f_cmd_z1};
+	Eigen::Vector3d thrust_dir2{f_cmd_x2, f_cmd_y2, f_cmd_z2};
+	thrust_dir1.normalize();
+	thrust_dir2.normalize();
 
     Eigen::Vector3d eulers1 = quaternion_to_rpy_wrap(Eigen::Quaterniond(mav1_.q[0],
                                                                         mav1_.q[1],
@@ -232,23 +229,23 @@ void Mav1ASIF::geometric_controller(const Eigen::Vector4d &mav1_des,
                                                                         mav2_.q[2],
                                                                         mav2_.q[3]));
 
-    Eigen::Vector3d iterm_thrust_frame1_1 = ned_to_aircraft_frame(thrust_dir1, quaternion_from_euler(0, 0, eulers1(2)));
-    Eigen::Vector3d iterm_thrust_frame1_2 = ned_to_aircraft_frame(thrust_dir2, quaternion_from_euler(0, 0, eulers2(2)));
+	Eigen::Vector3d iterm_thrust_frame1_1 = ned_to_aircraft_frame(thrust_dir1, quaternion_from_euler(0, 0, eulers1(2)));
+	Eigen::Vector3d iterm_thrust_frame1_2 = ned_to_aircraft_frame(thrust_dir2, quaternion_from_euler(0, 0, eulers2(2)));
 
-    double theta1_cmd = atan2(-iterm_thrust_frame1_1.x(), -iterm_thrust_frame1_1.z());
-    double theta2_cmd = atan2(-iterm_thrust_frame1_2.x(), -iterm_thrust_frame1_2.z());
+	double theta1_cmd = atan2(-iterm_thrust_frame1_1.x(), -iterm_thrust_frame1_1.z());
+	double theta2_cmd = atan2(-iterm_thrust_frame1_2.x(), -iterm_thrust_frame1_2.z());
 
-    Eigen::Vector3d iterm_thrust_frame2_1 = ned_to_aircraft_frame<Eigen::Vector3d>(iterm_thrust_frame1_1,
-                                                                                   quaternion_from_euler(0,
-                                                                                                         theta1_cmd,
-                                                                                                         0));
-    Eigen::Vector3d iterm_thrust_frame2_2 = ned_to_aircraft_frame<Eigen::Vector3d>(iterm_thrust_frame1_2,
-                                                                                   quaternion_from_euler(0,
-                                                                                                         theta2_cmd,
-                                                                                                         0));
+	Eigen::Vector3d iterm_thrust_frame2_1 = ned_to_aircraft_frame<Eigen::Vector3d>(iterm_thrust_frame1_1,
+	                                                                               quaternion_from_euler(0,
+	                                                                                                     theta1_cmd,
+	                                                                                                     0));
+	Eigen::Vector3d iterm_thrust_frame2_2 = ned_to_aircraft_frame<Eigen::Vector3d>(iterm_thrust_frame1_2,
+	                                                                               quaternion_from_euler(0,
+	                                                                                                     theta2_cmd,
+	                                                                                                     0));
 
-    double phi1_cmd = atan2(iterm_thrust_frame2_1.y(), -iterm_thrust_frame2_1.z());
-    double phi2_cmd = atan2(iterm_thrust_frame2_2.y(), -iterm_thrust_frame2_2.z());
+	double phi1_cmd = atan2(iterm_thrust_frame2_1.y(), -iterm_thrust_frame2_1.z());
+	double phi2_cmd = atan2(iterm_thrust_frame2_2.y(), -iterm_thrust_frame2_2.z());
 
 
 //	std::cout << "--------" << std::endl;
@@ -257,19 +254,19 @@ void Mav1ASIF::geometric_controller(const Eigen::Vector4d &mav1_des,
 //	std::cout << eulers1 << std::endl;
 //	std::cout << phi1_cmd << std::endl;
 //	std::cout << theta1_cmd << std::endl;
-    control1.thrust_body[2] = -(-f_cmd_x1 * cos(eulers1.x()) * sin(eulers1.y()) + f_cmd_y1 * sin(eulers1.x())
-                                - f_cmd_z1 * cos(eulers1.x()) * cos(eulers1.y()) - quad1_min_thrust_body_) / (quad1_max_thrust_body_ - quad1_min_thrust_body_);
-    control2.thrust_body[2] = -(-f_cmd_x2 * cos(eulers2.x()) * sin(eulers2.y()) + f_cmd_y2 * sin(eulers2.x())
-                                - f_cmd_z2 * cos(eulers2.x()) * cos(eulers2.y()) - quad2_min_thrust_body_) / (quad2_max_thrust_body_ - quad2_min_thrust_body_);
+	control1.thrust_body[2] = -(-f_cmd_x1 * cos(eulers1.x()) * sin(eulers1.y()) + f_cmd_y1 * sin(eulers1.x())
+			- f_cmd_z1 * cos(eulers1.x()) * cos(eulers1.y()) - quad1_min_thrust_body_) / (quad1_max_thrust_body_ - quad1_min_thrust_body_);
+	control2.thrust_body[2] = -(-f_cmd_x2 * cos(eulers2.x()) * sin(eulers2.y()) + f_cmd_y2 * sin(eulers2.x())
+			- f_cmd_z2 * cos(eulers2.x()) * cos(eulers2.y()) - quad2_min_thrust_body_) / (quad2_max_thrust_body_ - quad2_min_thrust_body_);
 
-    control1.roll = -roll_kp_ * (eulers1.x() - phi1_cmd);
-    control2.roll = -roll_kp_ * (eulers2.x() - phi2_cmd);
+	control1.roll = -roll_kp_ * (eulers1.x() - phi1_cmd);
+	control2.roll = -roll_kp_ * (eulers2.x() - phi2_cmd);
 
-    control1.pitch = -pitch_yaw_kp_ * (eulers1.y() - theta1_cmd);
-    control2.pitch = -pitch_yaw_kp_ * (eulers2.y() - theta2_cmd);
+	control1.pitch = -pitch_yaw_kp_ * (eulers1.y() - theta1_cmd);
+	control2.pitch = -pitch_yaw_kp_ * (eulers2.y() - theta2_cmd);
 
-    control1.yaw = -pitch_yaw_kp_ * (eulers1.z() - mav1_des(3));
-    control2.yaw = -pitch_yaw_kp_ * (eulers2.z() - mav2_des(3));
+	control1.yaw = -pitch_yaw_kp_ * (eulers1.z() - mav1_des(3));
+	control2.yaw = -pitch_yaw_kp_ * (eulers2.z() - mav2_des(3));
 }
 
 
