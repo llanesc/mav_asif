@@ -98,11 +98,11 @@ public:
 		{
 
 			if (offboard_setpoint_counter_ == 10) {
-				// Change to Offboard mode after 10 setpoints
-				this->publish_vehicle_command(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
-
-				// Arm the vehicle
-				this->arm();
+//				// Change to Offboard mode after 10 setpoints
+//				this->publish_vehicle_command(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
+//
+//				// Arm the vehicle
+//				this->arm();
 			}
 
 			// offboard_control_mode needs to be paired with trajectory_setpoint
@@ -114,9 +114,9 @@ public:
 //				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
 //			}
             geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
-
-			control1_.timestamp = timestamp_.load();
-			vehicle_rates_setpoint_publisher_->publish(control1_);
+            RCLCPP_INFO(get_logger(),"\nroll:%.3f pitch:%.3f yaw:%.3f thrust:%.4f\n", control1_.roll,control1_.pitch,control1_.yaw,control1_.thrust_body[2]);
+//			control1_.timestamp = timestamp_.load();
+//			vehicle_rates_setpoint_publisher_->publish(control1_);
 
 			// stop the counter after reaching 11
 			if (offboard_setpoint_counter_ < 11) {
@@ -134,7 +134,7 @@ public:
 			asif_activate_timer_->reset();
 		};
 
-        asif_activate_timer_ = this->create_wall_timer(30s, asif_activate_callback);
+        asif_activate_timer_ = this->create_wall_timer(60s, asif_activate_callback);
 	}
 
 	void arm() const;
