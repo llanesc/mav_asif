@@ -22,5 +22,10 @@ static double compute_relative_thrust(const double &collective_thrust, const dou
     static constexpr double k2 = 0.090929073038638;
     static constexpr double k3 = -0.395016026779458;
     static constexpr double hover_thrust = 0.1626; // hover thrust at 14.85V
-    return (k1 * voltage * voltage + k2 * voltage + k3) / hover_thrust * (collective_thrust - min_thrust) / (max_thrust - min_thrust);
+    if (voltage > 14.0) {
+        return (k1 * voltage * voltage + k2 * voltage + k3) / hover_thrust * (collective_thrust - min_thrust) / (max_thrust - min_thrust);
+    } else {
+        return (collective_thrust - min_thrust) / (max_thrust - min_thrust);
+    }
+
 }

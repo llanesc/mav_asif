@@ -114,7 +114,7 @@ public:
             }
 
             // offboard_control_mode needs to be paired with trajectory_setpoint
-            publish_offboard_control_mode();
+//            publish_offboard_control_mode();
 //			if (asif_active_) {
 //				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
 //				asif_solver_.QP(&workspace, mav1_, mav2_, &control1_, &control2_);
