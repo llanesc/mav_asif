@@ -15,3 +15,12 @@ static Eigen::Vector3d quaternion_to_rpy_wrap(const Eigen::Quaterniond &q)
 
 	return rpy;
 }
+
+static double compute_relative_thrust(const double &collective_thrust, const double &voltage, const double &min_thrust, const double &max_thrust)
+{
+    static constexpr double k1 = -0.003594410861473;
+    static constexpr double k2 = 0.090929073038638;
+    static constexpr double k3 = -0.395016026779458;
+    static constexpr double hover_thrust = 0.1626; // hover thrust at 14.85V
+    return (k1 * voltage * voltage + k2 * voltage + k3) / hover_thrust * (collective_thrust - min_thrust) / (max_thrust - min_thrust);
+}

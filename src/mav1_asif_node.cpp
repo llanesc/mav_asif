@@ -4,6 +4,7 @@
 #include <px4_msgs/msg/vehicle_rates_setpoint.hpp>
 #include <px4_msgs/msg/vehicle_control_mode.hpp>
 #include <px4_msgs/msg/vehicle_command.hpp>
+#include <px4_msgs/msg/battery_status.hpp>
 #include <px4_ros_com/frame_transforms.h>
 #include <rclcpp/rclcpp.hpp>
 #include "workspace.h"
@@ -63,11 +64,11 @@ public:
 			RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Parameter type exception caught");
 			rclcpp::shutdown(nullptr, "ASIF ERROR: Parameter type exception caught on initialization");
 		}
-		offboard_control_mode_publisher_ =
+		offboard_control_mode_pub_ =
 				this->create_publisher<OffboardControlMode>(mav1_namespace_ + "fmu/offboard_control_mode/in", 10);
-		vehicle_rates_setpoint_publisher_ =
+		vehicle_rates_setpoint_pub_ =
 				this->create_publisher<VehicleRatesSetpoint>(mav1_namespace_ + "fmu/vehicle_rates_setpoint/in", 10);
-		vehicle_command_publisher_ =
+		vehicle_command_pub_ =
 				this->create_publisher<VehicleCommand>(mav1_namespace_ + "fmu/vehicle_command/in", 10);
 
 		// get common timestamp
@@ -79,7 +80,7 @@ public:
 				                                                   });
 		mav1_estimator_odometry_subscriber_ =
 				this->create_subscription<VehicleOdometry>(mav1_namespace_ + "fmu/vehicle_odometry/out", 10,
-				                                           [this](const VehicleOdometry::SharedPtr msg)
+				                                           [this](const VehicleOdometry::UniquePtr msg)
 				                                           {
                                                                mav1_ = *msg;
 				                                           });
@@ -89,34 +90,47 @@ public:
 				                                           {
 					                                           mav2_ = *msg;
 				                                           });
+        mav1_battery_status_sub_ =
+                this->create_subscription<BatteryStatus>(mav1_namespace_ + "fmu/battery_status/out", 10,
+                                                           [this](const BatteryStatus::UniquePtr msg)
+                                                           {
+                                                               mav1_battery_status_ = *msg;
+                                                           });
+        mav2_battery_status_sub_ =
+                this->create_subscription<BatteryStatus>(mav2_namespace_ + "fmu/battery_status/out", 10,
+                                                           [this](const BatteryStatus::UniquePtr msg)
+                                                           {
+                                                               mav2_battery_status_ = *msg;
+                                                           });
+
 		offboard_setpoint_counter_ = 0;
 
-		mav1_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
+		mav1_des_ << 0.0, 0.0, -1.5, 0.0; //x, y, z, yaw
 		mav2_des_ << 0.0, 1.0, -1.0, 0.0; //x, y, z, yaw
 
 
 		auto timer_callback = [this]() -> void
 		{
 
-			if (offboard_setpoint_counter_ == 10) {
-				// Change to Offboard mode after 10 setpoints
-				this->publish_vehicle_command(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
-
-				// Arm the vehicle
-				this->arm();
-			}
+//			if (offboard_setpoint_counter_ == 10) {
+//				// Change to Offboard mode after 10 setpoints
+//				this->publish_vehicle_command(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
+//
+//				// Arm the vehicle
+//				this->arm();
+//			}
 
 			// offboard_control_mode needs to be paired with trajectory_setpoint
 			publish_offboard_control_mode();
 			if (asif_active_) {
 				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
-				asif_solver_.QP(&workspace, mav1_, mav2_, &control1_, &control2_);
+				//asif_solver_.QP(&workspace, mav1_, mav2_, &control1_, &control2_);
 			} else {
 				geometric_controller(mav1_des_, mav2_des_, control1_, control2_);
 			}
 
 			control1_.timestamp = timestamp_.load();
-			vehicle_rates_setpoint_publisher_->publish(control1_);
+			vehicle_rates_setpoint_pub_->publish(control1_);
 
 			// stop the counter after reaching 11
 			if (offboard_setpoint_counter_ < 11) {
@@ -125,16 +139,16 @@ public:
 		};
 		timer_ = this->create_wall_timer(10ms, timer_callback);
 
-		auto asif_activate_callback = [this]() -> void
-		{
-			mav1_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
-			mav2_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
-			asif_active_ = true;
-			asif_activate_timer_->cancel();
-			asif_activate_timer_->reset();
-		};
-
-		asif_activate_timer_ = this->create_wall_timer(30s, asif_activate_callback);
+//		auto asif_activate_callback = [this]() -> void
+//		{
+//			mav1_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
+//			mav2_des_ << 0.0, 0.0, -2.0, 0.0; //x, y, z, yaw
+//			asif_active_ = true;
+//			asif_activate_timer_->cancel();
+//			asif_activate_timer_->reset();
+//		};
+//
+//		asif_activate_timer_ = this->create_wall_timer(30s, asif_activate_callback);
 	}
 
 	void arm() const;
@@ -162,13 +176,16 @@ private:
 	rclcpp::TimerBase::SharedPtr timer_;
 	rclcpp::TimerBase::SharedPtr asif_activate_timer_;
 
-	rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_control_mode_publisher_;
-	rclcpp::Publisher<VehicleRatesSetpoint>::SharedPtr vehicle_rates_setpoint_publisher_;
-	rclcpp::Publisher<VehicleCommand>::SharedPtr vehicle_command_publisher_;
+	rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_control_mode_pub_;
+	rclcpp::Publisher<VehicleRatesSetpoint>::SharedPtr vehicle_rates_setpoint_pub_;
+	rclcpp::Publisher<VehicleCommand>::SharedPtr vehicle_command_pub_;
 
 	rclcpp::Subscription<VehicleOdometry>::SharedPtr mav1_estimator_odometry_subscriber_;
 	rclcpp::Subscription<VehicleOdometry>::SharedPtr mav2_estimator_odometry_subscriber_;
-	rclcpp::Subscription<px4_msgs::msg::Timesync>::SharedPtr timesync_sub_;
+	rclcpp::Subscription<BatteryStatus>::SharedPtr mav1_battery_status_sub_;
+    rclcpp::Subscription<BatteryStatus>::SharedPtr mav2_battery_status_sub_;
+
+    rclcpp::Subscription<px4_msgs::msg::Timesync>::SharedPtr timesync_sub_;
 
     rclcpp::SerializedMessage mav1_serialized_msg_;
 
@@ -179,6 +196,8 @@ private:
 	ASIF asif_solver_;
 	bool asif_active_{false};
 
+	BatteryStatus mav1_battery_status_;
+	BatteryStatus mav2_battery_status_;
 	VehicleOdometry mav1_;
 	VehicleOdometry mav2_;
 	VehicleRatesSetpoint control1_;
@@ -257,10 +276,10 @@ void Mav1ASIF::geometric_controller(const Eigen::Vector4d &mav1_des,
 //	std::cout << eulers1 << std::endl;
 //	std::cout << phi1_cmd << std::endl;
 //	std::cout << theta1_cmd << std::endl;
-    control1.thrust_body[2] = -(-f_cmd_x1 * cos(eulers1.x()) * sin(eulers1.y()) + f_cmd_y1 * sin(eulers1.x())
-                                - f_cmd_z1 * cos(eulers1.x()) * cos(eulers1.y()) - quad1_min_thrust_body_) / (quad1_max_thrust_body_ - quad1_min_thrust_body_);
-    control2.thrust_body[2] = -(-f_cmd_x2 * cos(eulers2.x()) * sin(eulers2.y()) + f_cmd_y2 * sin(eulers2.x())
-                                - f_cmd_z2 * cos(eulers2.x()) * cos(eulers2.y()) - quad2_min_thrust_body_) / (quad2_max_thrust_body_ - quad2_min_thrust_body_);
+    control1.thrust_body[2] = -compute_relative_thrust(-f_cmd_x1 * cos(eulers1.x()) * sin(eulers1.y()) + f_cmd_y1 * sin(eulers1.x())
+                                - f_cmd_z1 * cos(eulers1.x()) * cos(eulers1.y()), mav1_battery_status_.voltage_filtered_v, quad1_min_thrust_body_, quad1_max_thrust_body_);
+    control2.thrust_body[2] = -compute_relative_thrust(-f_cmd_x2 * cos(eulers2.x()) * sin(eulers2.y()) + f_cmd_y2 * sin(eulers2.x())
+                                - f_cmd_z2 * cos(eulers2.x()) * cos(eulers2.y()), mav2_battery_status_.voltage_filtered_v, quad2_min_thrust_body_, quad2_max_thrust_body_);
 
     control1.roll = -roll_kp_ * (eulers1.x() - phi1_cmd);
     control2.roll = -roll_kp_ * (eulers2.x() - phi2_cmd);
@@ -307,7 +326,7 @@ void Mav1ASIF::publish_offboard_control_mode() const
 	msg.attitude = false;
 	msg.body_rate = true;
 
-	offboard_control_mode_publisher_->publish(msg);
+	offboard_control_mode_pub_->publish(msg);
 }
 
 /**
@@ -330,7 +349,7 @@ void Mav1ASIF::publish_vehicle_command(uint16_t command, float param1,
 	msg.source_component = 1;
 	msg.from_external = true;
 
-	vehicle_command_publisher_->publish(msg);
+	vehicle_command_pub_->publish(msg);
 }
 
 int main(int argc, char *argv[])
