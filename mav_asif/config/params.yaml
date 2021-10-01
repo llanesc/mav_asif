@@ -30,14 +30,11 @@ asif_node:
     soft_min_parameters:
       fitness_multiplier: -10000000000000000.0
 
-mav1_node:
+mav_control_router:
   ros__parameters:
     mass1: 0.72734
     mass2: 0.72734
     gravity: 9.80665
-    safe_displacement:
-      y: 1.0
-      z: 1.0
     backup_dynamics:
       spring_constantX: 100.0
       spring_constantYZ: 30.0
@@ -46,28 +43,9 @@ mav1_node:
       spring_saturation: 0.03
       roll_kp: 6.0
       pitch_yaw_kp: 6.0
-    quad1_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
-    quad1_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
-    quad2_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
-    quad2_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
-
-mav2_node:
-  ros__parameters:
-    mass1: 0.72734
-    mass2: 0.72734
-    gravity: 9.80665
-    safe_displacement:
-      y: 1.0
-      z: 1.0
-    backup_dynamics:
-      spring_constantX: 100.0
-      spring_constantYZ: 30.0
-      spring_dampenerX: 6.0
-      spring_dampenerYZ: 5.0
-      spring_saturation: 0.03
-      roll_kp: 6.0
-      pitch_yaw_kp: 6.0
-    quad1_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
-    quad1_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
-    quad2_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
-    quad2_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
+    thrust_model:
+      mav_min_thrust: 0.5492 # collective thrust
+      mav_max_thrust: 39.40 # collective thrust
+      hover_thrust_reference: 0.1626
+      voltage_k1: 0.0
+      voltage_k2: 0.0
