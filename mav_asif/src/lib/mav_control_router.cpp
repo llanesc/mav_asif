@@ -47,36 +47,35 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 	}
 	// ----------------------- Publishers --------------------------
 	vehicle_command_pub_ =
-			this->create_publisher<VehicleCommand>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_command/in", 10);
+			this->create_publisher<px4_msgs::msg::VehicleCommand>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_command/in", 10);
 	offboard_control_mode_pub_ =
-			this->create_publisher<OffboardControlMode>("/mav" + std::to_string(mav_id_) + "/fmu/offboard_control_mode/in",10);
+			this->create_publisher<px4_msgs::msg::OffboardControlMode>("/mav" + std::to_string(mav_id_) + "/fmu/offboard_control_mode/in",10);
 	asif_status_pub_ =
 			this->create_publisher<AsifStatus>("/mav" + std::to_string(mav_id_) + "/asif_status", 10);
 	vehicle_rates_setpoint_pub_ =
-			this->create_publisher<VehicleRatesSetpoint>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_rates_setpoint/in",10);
+			this->create_publisher<px4_msgs::msg::VehicleRatesSetpoint>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_rates_setpoint/in",10);
 	// ----------------------- Subscribers --------------------------
 	mav_battery_status_sub_ =
-			this->create_subscription<BatteryStatus>("/mav" + std::to_string(mav_id_) + "/fmu/battery_status/out", 10,
+			this->create_subscription<px4_msgs::msg::BatteryStatus>("/mav" + std::to_string(mav_id_) + "/fmu/battery_status/out", 10,
 			                                         [this](const BatteryStatus::UniquePtr msg)
 			                                         {
 				                                         mav_battery_status_ = *msg;
 			                                         });
 	timesync_sub_ =
-			this->create_subscription<px4_msgs::msg::Timesync>("/mav" + std::to_string(mav_id_) + "/fmu/timesync/out",
-			                                                   10,
+			this->create_subscription<px4_msgs::msg::Timesync>("/mav" + std::to_string(mav_id_) + "/fmu/timesync/out",10,
 			                                                   [this](const px4_msgs::msg::Timesync::UniquePtr msg)
 			                                                   {
 				                                                   timestamp_.store(msg->timestamp);
 			                                                   });
 	mav_vehicle_status_sub_ =
-			this->create_subscription<VehicleStatus>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_status/out", 10,
-			                                         [this](const VehicleStatus::UniquePtr msg)
+			this->create_subscription<px4_msgs::msg::VehicleStatus>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_status/out", 10,
+			                                         [this](const px4_msgs::msg::VehicleStatus::UniquePtr msg)
 			                                         {
 				                                         mav_vehicle_status_ = *msg;
 			                                         });
 	mav_channels_sub_ =
-			this->create_subscription<RcChannels>("/mav" + std::to_string(mav_id_) + "/fmu/rc_channels/out", 10,
-			                                      [this](const RcChannels::UniquePtr msg)
+			this->create_subscription<px4_msgs::msg::RcChannels>("/mav" + std::to_string(mav_id_) + "/fmu/rc_channels/out", 10,
+			                                      [this](const px4_msgs::msg::RcChannels::UniquePtr msg)
 			                                      {
 				                                      mav_channels_ = *msg;
 				                                      if (msg->channels[ASIF_ENABLE_CHANNEL - 1] >= 0.75){
