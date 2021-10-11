@@ -82,8 +82,8 @@ private:
 	std::array<double, 4> mav2_des_;
 	RcChannels mav_channels_;
 
-	std::string mav1_namespace_ = "/mav1/";
-	std::string mav2_namespace_ = "/mav2/";
+	std::string mav1_namespace_ = "/mav0/";
+	std::string mav2_namespace_ = "/mav1/";
 
 };
 

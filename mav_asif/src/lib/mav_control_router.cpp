@@ -155,7 +155,7 @@ void MavControlRouter::set_control(const VehicleOdometry &mav1_odom,
                                    const mavControl &control2)
 {
 	mav_asif_msgs::msg::AsifStatus asif_status;
-
+	RCLCPP_INFO(get_logger(),"set control function");
 	mav1_control_ = control1;
 	mav2_control_ = control2;
 	asif_status.position_controller[0].roll_rate = control1.roll_rate;
@@ -201,6 +201,7 @@ void MavControlRouter::publish_control()
 		} else if (offboard_counter_ < 11) {
 			offboard_counter_++;
 		}
+		RCLCPP_INFO(get_logger(),"offboard on");
 		switch (mav_id_) {
 			case 0:
 				vehicle_rates.timestamp = timestamp_.load();
@@ -227,6 +228,7 @@ void MavControlRouter::publish_control()
 		vehicle_rates_setpoint_pub_->publish(vehicle_rates);
 	} else {
 		offboard_counter_ = 0;
+		RCLCPP_INFO(get_logger(),"offboard off");
 	}
 }
 
