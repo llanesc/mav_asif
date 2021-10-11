@@ -5,9 +5,9 @@
 namespace asif
 {
 
-static constexpr uint8_t OFFBOARD_ENABLE_CHANNEL = 8;
-static constexpr uint8_t POSITION_SETPOINT_CHANNEL = 9;
-static constexpr uint8_t ASIF_ENABLE_CHANNEL = 10;
+static constexpr uint8_t OFFBOARD_ENABLE_CHANNEL = 7;
+static constexpr uint8_t POSITION_SETPOINT_CHANNEL = 5;
+static constexpr uint8_t ASIF_ENABLE_CHANNEL = 6;
 
 typedef struct mavControl {
 	double roll_rate; // rad/s

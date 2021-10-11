@@ -26,11 +26,8 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 	declare_parameter("backup_dynamics.spring_saturation");
 	declare_parameter("backup_dynamics.roll_kp");
 	declare_parameter("backup_dynamics.pitch_yaw_kp");
-	declare_parameter("motor_model.max_thrust");
-	declare_parameter("thrust_model.min_thrust");
-	declare_parameter("thrust_model.hover_thrust_reference");
-	declare_parameter("thrust_model.voltage_k1");
-	declare_parameter("thrust_model.voltage_k2");
+	declare_parameter("thrust_model.mav_max_thrust");
+	declare_parameter("thrust_model.mav_min_thrust");
 	try {
 		get_parameter("mass1", mass1_);
 		get_parameter("mass2", mass2_);
@@ -42,11 +39,8 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 		get_parameter("backup_dynamics.spring_saturation", spring_saturation_);
 		get_parameter("backup_dynamics.roll_kp", roll_kp_);
 		get_parameter("backup_dynamics.pitch_yaw_kp", pitch_yaw_kp_);
-		declare_parameter("thrust_model.max_thrust", mav_max_thrust);
-		declare_parameter("thrust_model.min_thrust", mav_min_thrust);
-		declare_parameter("thrust_model.hover_thrust_reference", hover_thrust_reference);
-		declare_parameter("thrust_model.voltage_k1", voltage_k1);
-		declare_parameter("thrust_model.voltage_k2", voltage_k2);
+		declare_parameter("thrust_model.mav_max_thrust", mav_max_thrust);
+		declare_parameter("thrust_model.mav_min_thrust", mav_min_thrust);
 	} catch (rclcpp::ParameterTypeException &excp) {
 		RCLCPP_ERROR(get_logger(), "Parameter type exception caught");
 		rclcpp::shutdown(nullptr, "Parameter type exception caught on initialization");
@@ -202,7 +196,7 @@ void MavControlRouter::set_control(const VehicleOdometry &mav1_odom,
 void MavControlRouter::publish_control() const
 {
 	VehicleRatesSetpoint vehicle_rates;
-	if ((mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL] >= 0.75)
+	if ((mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL-1] >= 0.75)
 	& (mav_vehicle_status_.nav_state == px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD)
 	& (mav_vehicle_status_.arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED)) {
 		switch (mav_id_) {
@@ -224,6 +218,7 @@ void MavControlRouter::publish_control() const
 				vehicle_rates.yaw = 0;
 				vehicle_rates.thrust_body[2] = 0;
 		}
+		publish_offboard_control_mode();
 		vehicle_rates_setpoint_pub_->publish(vehicle_rates);
 	}
 }
@@ -297,8 +292,10 @@ void MavControlRouter::position_controller(VehicleOdometry mav1_odom,
 double MavControlRouter::compute_relative_thrust(const double &collective_thrust) const
 {
 	if (mav_battery_status_.voltage_filtered_v > 14.0) {
-		return (voltage_k1 * mav_battery_status_.voltage_filtered_v + voltage_k2) / hover_thrust_reference * (collective_thrust - mav_min_thrust) / (mav_max_thrust - mav_min_thrust);
+		double rel_thrust = (collective_thrust - mav_min_thrust) / (mav_max_thrust - mav_min_thrust);
+		return (0.54358075*rel_thrust + 0.25020242*sqrt(3.6484*rel_thrust + 0.00772641) - 0.021992793) * (1-0.0779*(mav_battery_status_.voltage_filtered_v-16.0));
 	} else {
-		return (collective_thrust - mav_min_thrust) / (mav_max_thrust - mav_min_thrust);
+		double rel_thrust = (collective_thrust - mav_min_thrust) / (mav_max_thrust - mav_min_thrust);
+		return (0.54358075*rel_thrust + 0.25020242*sqrt(3.6484*rel_thrust + 0.00772641) - 0.021992793);
 	}
 }

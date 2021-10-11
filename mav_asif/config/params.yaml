@@ -12,10 +12,10 @@ asif_node:
       spring_dampener: 5.0
       spring_saturation: 0.06
       roll_P: 8.0
-    quad1_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
-    quad1_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
-    quad2_min_thrust_body: 0.5492 #Thrust in forward-right-down body frame Z-axis
-    quad2_max_thrust_body: 39.40 #Thrust in forward-right-down body frame Z-axis
+    quad1_min_thrust_body: 0.1079 #Thrust in forward-right-down body frame Z-axis
+    quad1_max_thrust_body: 33.9212 #Thrust in forward-right-down body frame Z-axis
+    quad2_min_thrust_body: 0.1079 #Thrust in forward-right-down body frame Z-axis
+    quad2_max_thrust_body: 33.9212 #Thrust in forward-right-down body frame Z-axis
     disturbance_min: [-0.0000000005,-0.0000000005,-0.0000005,-0.0000005, 0.0, 0.0]
     disturbance_max: [ 0.0000000005, 0.0000000005, 0.0000005, 0.0000005, 0.0, 0.0]
     lyapunov_function_P_matrix: [0.20144052,-0.030465978,0.0,0.0,0.11424094,-0.025081331,-0.14065411,0.0,-0.030465978,0.20144052,0.0,0.0,-0.025081331,0.11424094,0.14065411,0.0,0.0,0.0,0.081551058,-0.0088170579,0.0,0.0,0.0,-0.060611667,0.0,0.0,-0.0088170579,0.081551058,0.0,0.0,0.0,0.060611667,0.11424094,-0.025081331,0.0,0.0,0.20254012,-0.03074548,-0.074299675,0.0,-0.025081331,0.11424094,0.0,0.0,-0.03074548,0.20254012,0.074299675,0.0,-0.14065411,0.14065411,0.0,0.0,-0.074299675,0.074299675,0.8854516,0.0,0.0,0.0,-0.060611667,0.060611667,0.0,0.0,0.0,0.78940067]
@@ -44,8 +44,8 @@ mav_control_router:
       roll_kp: 6.0
       pitch_yaw_kp: 6.0
     thrust_model:
-      mav_min_thrust: 0.5492 # collective thrust
-      mav_max_thrust: 39.40 # collective thrust
-      hover_thrust_reference: 0.1626
+      mav_min_thrust: 0.1079 # collective thrust
+      mav_max_thrust: 33.9212 # collective thrust
+      hover_thrust_reference: 0.3057
       voltage_k1: 0.0
       voltage_k2: 0.0

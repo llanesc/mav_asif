@@ -69,9 +69,6 @@ private:
 	double pitch_yaw_kp_;
 	double mav_max_thrust;
 	double mav_min_thrust;
-	double hover_thrust_reference;
-	double voltage_k1;
-	double voltage_k2;
 
 	// Class methods
 	void arm() const;
