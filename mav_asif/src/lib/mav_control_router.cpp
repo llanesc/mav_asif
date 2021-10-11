@@ -84,6 +84,7 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 				                                      } else {
 					                                      asif_enabled_ = false;
 				                                      }
+				                                      RCLCPP_INFO(get_logger(),"mav_channel 6:%f",msg->channels[5]);
 			                                      });
 }
 
