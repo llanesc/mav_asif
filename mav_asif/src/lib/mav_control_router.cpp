@@ -49,13 +49,11 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 	vehicle_command_pub_ =
 			this->create_publisher<VehicleCommand>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_command/in", 10);
 	offboard_control_mode_pub_ =
-			this->create_publisher<OffboardControlMode>("/mav" + std::to_string(mav_id_) + "/fmu/offboard_control_mode/in",
-			                                            10);
+			this->create_publisher<OffboardControlMode>("/mav" + std::to_string(mav_id_) + "/fmu/offboard_control_mode/in",10);
 	asif_status_pub_ =
 			this->create_publisher<AsifStatus>("/mav" + std::to_string(mav_id_) + "/asif_status", 10);
 	vehicle_rates_setpoint_pub_ =
-			this->create_publisher<VehicleRatesSetpoint>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_rates_setpoint/in",
-			                                             10);
+			this->create_publisher<VehicleRatesSetpoint>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_rates_setpoint/in",10);
 	// ----------------------- Subscribers --------------------------
 	mav_battery_status_sub_ =
 			this->create_subscription<BatteryStatus>("/mav" + std::to_string(mav_id_) + "/fmu/battery_status/out", 10,
@@ -196,9 +194,9 @@ void MavControlRouter::set_control(const VehicleOdometry &mav1_odom,
 void MavControlRouter::publish_control()
 {
 	VehicleRatesSetpoint vehicle_rates;
-	if ((mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL-1] >= 0.75)
-	& (mav_vehicle_status_.arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED)) {
-		if (mav_vehicle_status_.nav_state != px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD && offboard_counter_ == 10) {
+	if ((mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL-1] >= 0.75) &&
+	(mav_vehicle_status_.arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED)) {
+		if ((mav_vehicle_status_.nav_state != px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD) && (offboard_counter_ == 10)) {
 			publish_vehicle_command(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
 		} else if (offboard_counter_ < 11) {
 			offboard_counter_++;
