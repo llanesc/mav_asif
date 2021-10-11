@@ -11,7 +11,7 @@ using namespace px4_msgs::msg;
 using namespace asif;
 
 MavControlRouter::MavControlRouter(uint8_t mav_id)
-		: rclcpp::Node("mav_control_router"), mav_id_(mav_id)
+		: Node("mav_control_router"), mav_id_(mav_id)
 {
 	// ----------------------- Parameter Initialization ------------------
 	declare_parameter("mass1");
@@ -47,34 +47,39 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 	}
 	// ----------------------- Publishers --------------------------
 	vehicle_command_pub_ =
-			this->create_publisher<px4_msgs::msg::VehicleCommand>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_command/in", 10);
+			this->create_publisher<px4_msgs::msg::VehicleCommand>("mav" + std::to_string(mav_id_) + "/fmu/vehicle_command/in", 10);
 	offboard_control_mode_pub_ =
-			this->create_publisher<px4_msgs::msg::OffboardControlMode>("/mav" + std::to_string(mav_id_) + "/fmu/offboard_control_mode/in",10);
+			this->create_publisher<px4_msgs::msg::OffboardControlMode>("mav" + std::to_string(mav_id_) + "/fmu/offboard_control_mode/in",10);
 	asif_status_pub_ =
-			this->create_publisher<AsifStatus>("/mav" + std::to_string(mav_id_) + "/asif_status", 10);
+			this->create_publisher<AsifStatus>("mav" + std::to_string(mav_id_) + "/asif_status", 10);
 	vehicle_rates_setpoint_pub_ =
-			this->create_publisher<px4_msgs::msg::VehicleRatesSetpoint>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_rates_setpoint/in",10);
+			this->create_publisher<px4_msgs::msg::VehicleRatesSetpoint>("mav" + std::to_string(mav_id_) + "/fmu/vehicle_rates_setpoint/in",10);
 	// ----------------------- Subscribers --------------------------
 	mav_battery_status_sub_ =
-			this->create_subscription<px4_msgs::msg::BatteryStatus>("/mav" + std::to_string(mav_id_) + "/fmu/battery_status/out", 10,
+			this->create_subscription<px4_msgs::msg::BatteryStatus>("mav" + std::to_string(mav_id_) + "/fmu/battery_status/out", 10,
 			                                         [this](const BatteryStatus::UniquePtr msg)
 			                                         {
 				                                         mav_battery_status_ = *msg;
+				                                         RCLCPP_INFO(get_logger(),"battery status");
 			                                         });
 	timesync_sub_ =
-			this->create_subscription<px4_msgs::msg::Timesync>("/mav" + std::to_string(mav_id_) + "/fmu/timesync/out",10,
+			this->create_subscription<px4_msgs::msg::Timesync>("mav" + std::to_string(mav_id_) + "/fmu/timesync/out",10,
 			                                                   [this](const px4_msgs::msg::Timesync::UniquePtr msg)
 			                                                   {
 				                                                   timestamp_.store(msg->timestamp);
+				                                                   RCLCPP_INFO(get_logger(),"timesync");
+
 			                                                   });
 	mav_vehicle_status_sub_ =
-			this->create_subscription<px4_msgs::msg::VehicleStatus>("/mav" + std::to_string(mav_id_) + "/fmu/vehicle_status/out", 10,
+			this->create_subscription<px4_msgs::msg::VehicleStatus>("mav" + std::to_string(mav_id_) + "/fmu/vehicle_status/out", 10,
 			                                         [this](const px4_msgs::msg::VehicleStatus::UniquePtr msg)
 			                                         {
 				                                         mav_vehicle_status_ = *msg;
+				                                         RCLCPP_INFO(get_logger(),"vehicle status");
+
 			                                         });
 	mav_channels_sub_ =
-			this->create_subscription<px4_msgs::msg::RcChannels>("/mav" + std::to_string(mav_id_) + "/fmu/rc_channels/out", 10,
+			this->create_subscription<px4_msgs::msg::RcChannels>("mav" + std::to_string(mav_id_) + "/fmu/rc_channels/out", 10,
 			                                      [this](const px4_msgs::msg::RcChannels::UniquePtr msg)
 			                                      {
 				                                      mav_channels_ = *msg;
@@ -83,7 +88,7 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 				                                      } else {
 					                                      asif_enabled_ = false;
 				                                      }
-				                                      RCLCPP_INFO(get_logger(),"mav_channel 6:%f",msg->channels[5]);
+				                                      RCLCPP_INFO(get_logger(),"rc channel");
 			                                      });
 }
 
