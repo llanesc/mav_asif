@@ -194,6 +194,8 @@ void MavControlRouter::set_control(const VehicleOdometry &mav1_odom,
 void MavControlRouter::publish_control()
 {
 	VehicleRatesSetpoint vehicle_rates;
+	RCLCPP_INFO(get_logger(),"%f",mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL-1]);
+	RCLCPP_INFO(get_logger(),"%i",mav_vehicle_status_.arming_state);
 	if ((mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL-1] >= 0.75) &&
 	(mav_vehicle_status_.arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED)) {
 		if ((mav_vehicle_status_.nav_state != px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD) && (offboard_counter_ == 10)) {
