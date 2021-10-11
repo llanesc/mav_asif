@@ -193,12 +193,16 @@ void MavControlRouter::set_control(const VehicleOdometry &mav1_odom,
 	publish_control();
 }
 
-void MavControlRouter::publish_control() const
+void MavControlRouter::publish_control()
 {
 	VehicleRatesSetpoint vehicle_rates;
 	if ((mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL-1] >= 0.75)
-	& (mav_vehicle_status_.nav_state == px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD)
 	& (mav_vehicle_status_.arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED)) {
+		if (mav_vehicle_status_.nav_state != px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD && offboard_counter_ == 10) {
+			publish_vehicle_command(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
+		} else if (offboard_counter_ < 11) {
+			offboard_counter_++;
+		}
 		switch (mav_id_) {
 			case 0:
 				vehicle_rates.roll = mav1_control_.roll_rate;
@@ -220,6 +224,8 @@ void MavControlRouter::publish_control() const
 		}
 		publish_offboard_control_mode();
 		vehicle_rates_setpoint_pub_->publish(vehicle_rates);
+	} else {
+		offboard_counter_ = 0;
 	}
 }
 

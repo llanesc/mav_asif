@@ -69,12 +69,13 @@ private:
 	double pitch_yaw_kp_;
 	double mav_max_thrust;
 	double mav_min_thrust;
+	uint8_t offboard_counter_{0};
 
 	// Class methods
 	void arm() const;
 	void disarm() const;
 	void publish_offboard_control_mode() const;
-	void publish_control() const;
+	void publish_control();
 	void publish_vehicle_command(uint16_t command, float param1 = 0.0,
 	                             float param2 = 0.0) const;
 
