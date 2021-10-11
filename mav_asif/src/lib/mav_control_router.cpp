@@ -39,8 +39,8 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
 		get_parameter("backup_dynamics.spring_saturation", spring_saturation_);
 		get_parameter("backup_dynamics.roll_kp", roll_kp_);
 		get_parameter("backup_dynamics.pitch_yaw_kp", pitch_yaw_kp_);
-		declare_parameter("thrust_model.mav_max_thrust", mav_max_thrust);
-		declare_parameter("thrust_model.mav_min_thrust", mav_min_thrust);
+		get_parameter("thrust_model.mav_max_thrust", mav_max_thrust);
+		get_parameter("thrust_model.mav_min_thrust", mav_min_thrust);
 	} catch (rclcpp::ParameterTypeException &excp) {
 		RCLCPP_ERROR(get_logger(), "Parameter type exception caught");
 		rclcpp::shutdown(nullptr, "Parameter type exception caught on initialization");
