@@ -205,18 +205,21 @@ void MavControlRouter::publish_control()
 		}
 		switch (mav_id_) {
 			case 0:
+				vehicle_rates.timestamp = timestamp_.load();
 				vehicle_rates.roll = mav1_control_.roll_rate;
 				vehicle_rates.pitch = mav1_control_.pitch_rate;
 				vehicle_rates.yaw = mav1_control_.yaw_rate;
 				vehicle_rates.thrust_body[2] = -compute_relative_thrust(mav1_control_.thrust);
 				break;
 			case 1:
+				vehicle_rates.timestamp = timestamp_.load();
 				vehicle_rates.roll = mav2_control_.roll_rate;
 				vehicle_rates.pitch = mav2_control_.pitch_rate;
 				vehicle_rates.yaw = mav2_control_.yaw_rate;
 				vehicle_rates.thrust_body[2] = -compute_relative_thrust(mav2_control_.thrust);
 				break;
 			default:
+				vehicle_rates.timestamp = timestamp_.load();
 				vehicle_rates.roll = 0;
 				vehicle_rates.pitch = 0;
 				vehicle_rates.yaw = 0;
