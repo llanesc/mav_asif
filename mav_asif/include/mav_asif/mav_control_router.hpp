@@ -21,17 +21,7 @@ class MavControlRouter: public rclcpp::Node {
 public:
 	MavControlRouter(uint8_t mav_id);
 
-	void set_control(const px4_msgs::msg::VehicleOdometry &mav1_odom,
-	                 const px4_msgs::msg::VehicleOdometry &mav2_odom,
-	                 const mavControl &control1,
-	                 const mavControl &control2);
 
-	void position_controller(px4_msgs::msg::VehicleOdometry mav1_odom,
-	                         px4_msgs::msg::VehicleOdometry mav2_odom,
-	                         mavControl &mav1_control,
-	                         mavControl &mav2_control,
-	                         const std::array<double, 4> &mav1_des,
-	                         const std::array<double, 4> &mav2_des) const;
 
 private:
 	// ----------------------- Publishers --------------------------
@@ -44,14 +34,19 @@ private:
 	rclcpp::Subscription<px4_msgs::msg::Timesync>::SharedPtr timesync_sub_;
 	rclcpp::Subscription<px4_msgs::msg::BatteryStatus>::SharedPtr mav_battery_status_sub_;
 	rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr mav_vehicle_status_sub_;
+    rclcpp::Subscription<px4_msgs::msg::VehicleOdometry>::SharedPtr mav1_estimator_odometry_sub_;
+    rclcpp::Subscription<px4_msgs::msg::VehicleOdometry>::SharedPtr mav2_estimator_odometry_sub_;
 
 	// Message Callback Variables
 	std::atomic<uint64_t> timestamp_;
 	px4_msgs::msg::BatteryStatus mav_battery_status_;
 	px4_msgs::msg::VehicleStatus mav_vehicle_status_;
 	px4_msgs::msg::RcChannels mav_channels_;
+    px4_msgs::msg::VehicleOdometry mav1_odom_;
+    px4_msgs::msg::VehicleOdometry mav2_odom_;
 
 	// Class Variables
+    rclcpp::TimerBase::SharedPtr timer_;
 	ASIF asif_solver_;
 	uint8_t mav_id_;
 	mavControl mav1_control_;
@@ -69,6 +64,8 @@ private:
 	double pitch_yaw_kp_;
 	double mav_max_thrust;
 	double mav_min_thrust;
+    std::array<double, 4> mav1_des_ = {0.0, 0.0, -1.5, 0.0}; //x, y, z, yaw
+    std::array<double, 4> mav2_des_ = {0.0, 0.5, -1.0, 0.0}; //x, y, z, yaw
 	uint8_t offboard_counter_{0};
 
 	// Class methods
@@ -80,5 +77,7 @@ private:
 	                             float param2 = 0.0) const;
 
 	double compute_relative_thrust(const double &collective_thrust) const;
+    void set_control();
+    void position_controller();
 }; //class MavControlRouter
 } //namespace asif

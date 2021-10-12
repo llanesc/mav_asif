@@ -13,7 +13,7 @@ def generate_launch_description():
 
     mav1_asif_node = Node(
         package='mav_asif',
-        executable='mav1_test',
+        executable='mav2_control_router_node',
         output='screen',
         parameters=[params_file_path],
     )
