@@ -99,12 +99,12 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
                         }
                     });
     mav1_estimator_odometry_sub_ =
-            this->create_subscription<VehicleOdometry>("mav" + std::to_string(mav_id_) + "fmu/vehicle_odometry/out", 10,
+            this->create_subscription<VehicleOdometry>("mav" + std::to_string(mav_id_) + "/fmu/vehicle_odometry/out", 10,
                                                        [this](const VehicleOdometry::UniquePtr msg) {
                                                            mav1_odom_ = *msg;
                                                        });
     mav2_estimator_odometry_sub_ =
-            this->create_subscription<VehicleOdometry>("mav" + std::to_string(mav_id_) + "fmu/vehicle_odometry/out", 10,
+            this->create_subscription<VehicleOdometry>("mav" + std::to_string(mav_id_) + "/fmu/vehicle_odometry/out", 10,
                                                        [this](const VehicleOdometry::UniquePtr msg) {
                                                            mav2_odom_ = *msg;
                                                        });
