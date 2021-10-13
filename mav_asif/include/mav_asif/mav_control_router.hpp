@@ -64,8 +64,10 @@ private:
 	double pitch_yaw_kp_;
 	double mav_max_thrust;
 	double mav_min_thrust;
-    std::array<double, 4> mav1_des_ = {0.0, 0.0, -1.5, 0.0}; //x, y, z, yaw
-    std::array<double, 4> mav2_des_ = {0.0, 0.5, -1.0, 0.0}; //x, y, z, yaw
+
+
+    std::array<double, 4> mav1_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
+    std::array<double, 4> mav2_des_ = {0.0, 1.0, -1.0, 0.0}; //x, y, z, yaw
 	uint8_t offboard_counter_{0};
 
 	// Class methods

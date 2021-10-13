@@ -91,11 +91,11 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
                         }
 
                         if (mav_channels_.channels[POSITION_SETPOINT_CHANNEL - 1] >= 0.75) {
-                            mav1_des_ = {0.0, -0.5, -2.0, 0.0}; //x, y, z, yaw
-                            mav2_des_ = {0.0, 0.0, -1.5, 0.0}; //x, y, z, yaw
+                            mav1_des_ = {0.0, -1.0, -3.0, 0.0}; //x, y, z, yaw
+                            mav2_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
                         } else {
-                            mav1_des_ = {0.0, 0.0, -1.5, 0.0}; //x, y, z, yaw
-                            mav2_des_ = {0.0, 0.5, -1.0, 0.0}; //x, y, z, yaw
+                            mav1_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
+                            mav2_des_ = {0.0, 1.0, -1.0, 0.0}; //x, y, z, yaw
                         }
                     });
     mav1_estimator_odometry_sub_ =

@@ -1,25 +1,25 @@
 asif_node:
   ros__parameters:
-    mass1: 0.72734
-    mass2: 0.72734
+    mass1: 0.70
+    mass2: 0.70
     gravity: 9.80665
     asif_alpha: 1000.0
     safe_displacement:
       y: 1.0
       z: 1.0
     backup_dynamics:
-      spring_constant: 50.0
-      spring_dampener: 5.0
+      spring_constant: 60.0
+      spring_dampener: 7.0
       spring_saturation: 0.06
-      roll_P: 8.0
+      roll_P: 6.0
     quad1_min_thrust_body: 0.1079 #Thrust in forward-right-down body frame Z-axis
     quad1_max_thrust_body: 33.9212 #Thrust in forward-right-down body frame Z-axis
     quad2_min_thrust_body: 0.1079 #Thrust in forward-right-down body frame Z-axis
     quad2_max_thrust_body: 33.9212 #Thrust in forward-right-down body frame Z-axis
     disturbance_min: [-0.0000000005,-0.0000000005,-0.0000005,-0.0000005, 0.0, 0.0]
     disturbance_max: [ 0.0000000005, 0.0000000005, 0.0000005, 0.0000005, 0.0, 0.0]
-    lyapunov_function_P_matrix: [0.20144052,-0.030465978,0.0,0.0,0.11424094,-0.025081331,-0.14065411,0.0,-0.030465978,0.20144052,0.0,0.0,-0.025081331,0.11424094,0.14065411,0.0,0.0,0.0,0.081551058,-0.0088170579,0.0,0.0,0.0,-0.060611667,0.0,0.0,-0.0088170579,0.081551058,0.0,0.0,0.0,0.060611667,0.11424094,-0.025081331,0.0,0.0,0.20254012,-0.03074548,-0.074299675,0.0,-0.025081331,0.11424094,0.0,0.0,-0.03074548,0.20254012,0.074299675,0.0,-0.14065411,0.14065411,0.0,0.0,-0.074299675,0.074299675,0.8854516,0.0,0.0,0.0,-0.060611667,0.060611667,0.0,0.0,0.0,0.78940067]
-    barrier_function_constant: 0.05
+    lyapunov_function_P_matrix: [0.21526601,-0.029941623,0.0,0.0,0.10503952,-0.02331744,-0.14266303,0.0,-0.029941623,0.21526601,0.0,0.0,-0.02331744,0.10503952,0.14266303,0.0,0.0,0.0,0.054861111,-0.0048611111,0.0,0.0,0.0,-0.048611111,0.0,0.0,-0.0048611111,0.054861111,0.0,0.0,0.0,0.048611111,0.10503952,-0.02331744,0.0,0.0,0.25501431,-0.038110996,-0.079452025,0.0,-0.02331744,0.10503952,0.0,0.0,-0.038110996,0.25501431,0.079452025,0.0,-0.14266303,0.14266303,0.0,0.0,-0.079452025,0.079452025,0.88999309,0.0,0.0,0.0,-0.048611111,0.048611111,0.0,0.0,0.0,0.79325397]
+    barrier_function_constant: 0.04
     simulation:
       backup_horizon: 200
       dt_backup: 0.01
@@ -32,20 +32,17 @@ asif_node:
 
 mav_control_router:
   ros__parameters:
-    mass1: 0.72734
-    mass2: 0.72734
+    mass1: 0.70
+    mass2: 0.70
     gravity: 9.80665
     backup_dynamics:
       spring_constantX: 100.0
-      spring_constantYZ: 30.0
-      spring_dampenerX: 6.0
-      spring_dampenerYZ: 5.0
+      spring_constantYZ: 60.0
+      spring_dampenerX: 7.0
+      spring_dampenerYZ: 7.0
       spring_saturation: 0.03
       roll_kp: 6.0
       pitch_yaw_kp: 6.0
     thrust_model:
       mav_min_thrust: 0.1079 # collective thrust
       mav_max_thrust: 33.9212 # collective thrust
-      hover_thrust_reference: 0.3057
-      voltage_k1: 0.0
-      voltage_k2: 0.0
