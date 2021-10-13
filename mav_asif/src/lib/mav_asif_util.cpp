@@ -63,6 +63,7 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
             backup_times_backup.push(static_cast<int>(i * (backup_horizon_) / (log_distribution_steps_ - 1)));
         }
     }
+	const auto t1 = std::chrono::steady_clock::now();
 
     // Backup set max of min
     max_barrier_index_in_backup_horizon_ = 0;
@@ -96,6 +97,8 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
     embedding_state_gradient_t logsumexp_gradient;
     barrier_soft_min(worst_embedding_state, hs_min_backup, &logsumexp_gradient);
 
+	const auto t2 = std::chrono::steady_clock::now();
+
     Matrix<double, 1, NUM_STATES> DPsi_backup = logsumexp_gradient * QMatrix_backup;
 
     double q_new[NUM_CONTROL_INPUTS] = {-mav1_control.thrust,
@@ -123,6 +126,7 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
         ub_new[k] = (DPsi_backup * (f_x + w_temp) + asif_alpha_ * copysign(1.0, Psi_backup) * pow(abs(Psi_backup),
                                                                                                   1.0));
     }
+	const auto t3 = std::chrono::steady_clock::now();
 
     for (int Axindx = 0; Axindx < NUM_CONTROL_INPUTS * POWER_OF_TWO(NUM_DISTURBANCES); Axindx++) {
         A_new[Axindx] = Ax_backup(0, Axindx / POWER_OF_TWO(NUM_DISTURBANCES));
@@ -171,7 +175,10 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
     worst_barrier_time = max_barrier_index_in_backup_horizon_*dt_backup_;
 
     const auto end = std::chrono::steady_clock::now();
-    std::cout << "QP calculations took " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "µs\n";
+	std::cout << "QP calculations t1 " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - start).count() << "µs\n";
+	std::cout << "QP calculations t2 " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << "µs\n";
+	std::cout << "QP calculations t3 " << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << "µs\n";
+	std::cout << "QP calculations total " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "µs\n";
 
     return solution_solved;
 }
