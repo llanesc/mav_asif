@@ -13,6 +13,7 @@
   <build_depend>eigen</build_depend>
   <depend>rclcpp</depend>
   <depend>px4_msgs</depend>
+  <depend>mav_asif_msgs</depend>
   <depend>px4_ros_com</depend>
 
   <test_depend>ament_lint_auto</test_depend>

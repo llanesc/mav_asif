@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Eigen/Core"
+#include "Eigen/Dense"
 #include <rclcpp/rclcpp.hpp>
 #include "osqp.h"
 #include "workspace.h"
 #include <px4_msgs/msg/vehicle_odometry.hpp>
-#include <px4_msgs/msg/vehicle_rates_setpoint.hpp>
 #include <queue>
+#include "mav_util.h"
 
 namespace asif
 {
@@ -199,8 +199,10 @@ public:
 
 	int QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry &mav1,
 	       const px4_msgs::msg::VehicleOdometry &mav2,
-	       px4_msgs::msg::VehicleRatesSetpoint *controls1,
-	       px4_msgs::msg::VehicleRatesSetpoint *controls2);
+	       mavControl &mav1_control,
+	       mavControl &mav2_control,
+	       double &worst_barrier,
+	       double &worst_barrier_time);
 
 private:
 	double gravity_;
@@ -227,7 +229,7 @@ private:
 	double barrier_function_constant;
 
 	double dt_backup_;
-	int backup_horizon_; // number of backup steps of dt_backup_ backup_time = T_backup_*dt_backup_
+	int backup_horizon_; // number of backup steps of dt_backup_ backup_time = backup_horizon_*dt_backup_
 	int log_distribution_steps_;
 	int max_barrier_index_in_backup_horizon_{-1};
 

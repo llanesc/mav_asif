@@ -1,7 +1,6 @@
-#include "mav_asif_util.h"
+#include "mav_asif_util.hpp"
 #include <chrono>
 #include <iostream>
-#include <px4_ros_com/frame_transforms.h>
 #include "mav_util.h"
 
 using namespace asif;
@@ -9,8 +8,10 @@ using namespace Eigen;
 
 int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry &mav1,
              const px4_msgs::msg::VehicleOdometry &mav2,
-             px4_msgs::msg::VehicleRatesSetpoint *controls1,
-             px4_msgs::msg::VehicleRatesSetpoint *controls2) {
+             mavControl &mav1_control,
+             mavControl &mav2_control,
+             double &worst_barrier,
+             double &worst_barrier_time) {
     const std::chrono::time_point<std::chrono::steady_clock> start =
             std::chrono::steady_clock::now();
     Matrix<double, NUM_STATES, 1> f_x;
@@ -24,13 +25,6 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
                                                                         mav2.q[1],
                                                                         mav2.q[2],
                                                                         mav2.q[3]));
-
-    std::cout << "-----------------------" << std::endl;
-//	std::cout << iterm_thrust_frame1_1 << std::endl;
-//	std::cout << thrust_dir1 << std::endl;
-//	std::cout << eulers1 << std::endl;
-//	std::cout << phi1_cmd << std::endl;
-//	std::cout << theta1_cmd << std::endl;
 
     f_x.setZero();
     f_x(2) = gravity_;
@@ -82,6 +76,7 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
 
     for (int i = 0; i < backup_horizon_; i++) {
         if (i == backup_times_backup.front()) {
+
             barrier_soft_min(embedding_state_trajectory_, hs_min_backup, nullptr);
 
             if (hs_min_backup.back() > Psi_backup) {
@@ -91,6 +86,7 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
                 QMatrix_backup << Q1,
                                   Q2;
             }
+	        backup_times_backup.pop();
         }
         Q1 = jacobian(embedding_state_trajectory_.get_x()) * Q1 * dt_backup_ + Q1;
         Q2 = jacobian(embedding_state_trajectory_.get_xh()) * Q2 * dt_backup_ + Q2;
@@ -102,14 +98,14 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
 
     Matrix<double, 1, NUM_STATES> DPsi_backup = logsumexp_gradient * QMatrix_backup;
 
-    double q_new[NUM_CONTROL_INPUTS] = {controls1->thrust_body[2] * quad1_max_thrust_body_,
-                                        controls2->thrust_body[2] * quad2_max_thrust_body_,
-                                        -controls1->roll,
-                                        -controls2->roll};
-    double warm_x[NUM_CONTROL_INPUTS] = {-controls1->thrust_body[2] * quad1_max_thrust_body_,
-                                         -controls2->thrust_body[2] * quad2_max_thrust_body_,
-                                         controls1->roll,
-                                         controls2->roll};
+    double q_new[NUM_CONTROL_INPUTS] = {-mav1_control.thrust,
+                                        -mav2_control.thrust,
+                                        -mav1_control.roll_rate,
+                                        -mav2_control.roll_rate};
+    double warm_x[NUM_CONTROL_INPUTS] = {mav1_control.thrust,
+									     mav2_control.thrust,
+									     mav1_control.roll_rate,
+									     mav2_control.roll_rate};
     double ub_new[POWER_OF_TWO(NUM_DISTURBANCES)];
     double A_new[NUM_CONTROL_INPUTS * POWER_OF_TWO(NUM_DISTURBANCES)];
 
@@ -148,12 +144,11 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
         return -1;
     }
 
-    controls1->thrust_body[2] = -(osqp_workspace->solution->x[0] - quad1_min_thrust_body_) / (quad1_max_thrust_body_ - quad1_min_thrust_body_);
-    controls1->roll = osqp_workspace->solution->x[2];
+	mav1_control.thrust = osqp_workspace->solution->x[0];
+	mav1_control.roll_rate = osqp_workspace->solution->x[2];
 
-    controls2->thrust_body[2] = -(osqp_workspace->solution->x[1] - quad2_min_thrust_body_) / (quad2_max_thrust_body_ - quad2_min_thrust_body_);
-    controls2->roll = osqp_workspace->solution->x[3];
-
+	mav2_control.thrust = osqp_workspace->solution->x[1];
+	mav2_control.roll_rate = osqp_workspace->solution->x[3];
 
     printf("Status:                %s\n", (osqp_workspace)->info->status);
     printf("Number of iterations:  %d\n", (int) ((osqp_workspace)->info->iter));
@@ -171,6 +166,9 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
     if (solution_solved) {
         QP_initialized = true;
     }
+
+    worst_barrier = Psi_backup;
+    worst_barrier_time = max_barrier_index_in_backup_horizon_*dt_backup_;
 
     const auto end = std::chrono::steady_clock::now();
     std::cout << "QP calculations took " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "µs\n";

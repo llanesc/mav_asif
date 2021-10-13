@@ -24,6 +24,7 @@ add_compile_definitions(EIGEN_USE_BLAS EIGEN_USE_LAPACKE )
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(px4_msgs REQUIRED)
+find_package(mav_asif_msgs REQUIRED)
 find_package(px4_ros_com REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
@@ -31,8 +32,10 @@ find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 set(OMP_NUM_THREADS 16)
+
+
 add_library(mav_asif_util SHARED src/lib/mav_asif_util.cpp)
-ament_target_dependencies(mav_asif_util Eigen3 rclcpp px4_msgs px4_ros_com)
+ament_target_dependencies(mav_asif_util Eigen3 rclcpp px4_msgs mav_asif_msgs px4_ros_com)
 
 target_include_directories(mav_asif_util PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
@@ -42,41 +45,47 @@ target_include_directories(mav_asif_util PUBLIC
         )
 target_link_libraries(mav_asif_util Eigen3::Eigen ${rclcpp_LIBRARIES} emosqpstatic ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
+add_library(mav_control_router SHARED src/lib/mav_control_router.cpp)
+ament_target_dependencies(mav_control_router Eigen3 rclcpp px4_msgs mav_asif_msgs px4_ros_com)
+target_include_directories(mav_control_router PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+        ${Eigen3_INCLUDE_DIRS}
+        ${OSQP_INCLUDE_DIRS}
+        )
+target_link_libraries(mav_control_router Eigen3::Eigen ${rclcpp_LIBRARIES} mav_asif_util ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+
+add_executable(mav1_control_router_node src/mav1_control_router_node.cpp)
+target_link_libraries(mav1_control_router_node mav_control_router)
+
+add_executable(mav2_control_router_node src/mav2_control_router_node.cpp)
+target_link_libraries(mav2_control_router_node mav_control_router)
+
 #add_library(emosqpstatic STATIC IMPORTED)
 #set_property(TARGET emosqpstatic PROPERTY IMPORTED_LOCATION "{CMAKE_CURRENT_SOURCE_DIR}/src/lib/osqp_asif_solver/build/out/libemosqpstatic.a")
 #target_include_directories(emosqpstatic INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/osqp_asif_solver/include)
 
-add_executable(mav1_asif_node src/mav1_asif_node.cpp)
-ament_target_dependencies(mav1_asif_node Eigen3 rclcpp px4_msgs px4_ros_com)
-target_include_directories(mav1_asif_node PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
-        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-        ${Eigen3_INCLUDE_DIRS}
-        ${OSQP_INCLUDE_DIRS}
-        )
-target_link_libraries(mav1_asif_node Eigen3::Eigen ${rclcpp_LIBRARIES} mav_asif_util ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+#add_executable(mav1_asif_node src/mav1_asif_node.cpp)
+#ament_target_dependencies(mav1_asif_node Eigen3 rclcpp px4_msgs mav_asif_msgs px4_ros_com)
+#target_include_directories(mav1_asif_node PUBLIC
+#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
+#        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+#        ${Eigen3_INCLUDE_DIRS}
+#        ${OSQP_INCLUDE_DIRS}
+#        )
+#target_link_libraries(mav1_asif_node Eigen3::Eigen ${rclcpp_LIBRARIES} mav_control_router ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
-add_executable(mav2_asif_node src/mav2_asif_node.cpp)
-ament_target_dependencies(mav2_asif_node Eigen3 rclcpp px4_msgs px4_ros_com)
-target_include_directories(mav2_asif_node PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
-        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-        ${Eigen3_INCLUDE_DIRS}
-        ${OSQP_INCLUDE_DIRS}
-        )
-target_link_libraries(mav2_asif_node Eigen3::Eigen ${rclcpp_LIBRARIES} mav_asif_util ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+#add_executable(mav2_asif_node src/mav2_asif_node.cpp)
+#ament_target_dependencies(mav2_asif_node Eigen3 rclcpp px4_msgs mav_asif_msgs px4_ros_com)
+#target_include_directories(mav2_asif_node PUBLIC
+#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
+#        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+#        ${Eigen3_INCLUDE_DIRS}
+#        ${OSQP_INCLUDE_DIRS}
+#        )
+#target_link_libraries(mav2_asif_node Eigen3::Eigen ${rclcpp_LIBRARIES} mav_control_router ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
-add_executable(mav1_test src/mav1_test.cpp)
-ament_target_dependencies(mav1_test Eigen3 rclcpp px4_msgs px4_ros_com)
-target_include_directories(mav1_test PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
-        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-        ${Eigen3_INCLUDE_DIRS}
-        ${OSQP_INCLUDE_DIRS}
-        )
-target_link_libraries(mav1_test Eigen3::Eigen ${rclcpp_LIBRARIES} mav_asif_util ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
-
-install(TARGETS mav1_asif_node mav2_asif_node mav1_test
+install(TARGETS mav1_control_router_node mav2_control_router_node
         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
