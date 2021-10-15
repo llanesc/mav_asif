@@ -100,8 +100,6 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
     embedding_state_gradient_t logsumexp_gradient;
     barrier_soft_min(worst_embedding_state, hs_min_backup, &logsumexp_gradient);
 
-
-
     Matrix<double, 1, NUM_STATES> DPsi_backup = logsumexp_gradient * QMatrix_backup;
 
     double q_new[NUM_CONTROL_INPUTS] = {-mav1_control.thrust,
