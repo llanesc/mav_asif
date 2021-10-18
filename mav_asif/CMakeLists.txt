@@ -33,6 +33,12 @@ find_package(BLAS REQUIRED)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 set(OMP_NUM_THREADS 16)
 
+option(RUN_SITL "Target build is simulation" OFF)## RUN IN SIMULATION
+
+if(RUN_SITL)
+  message(STATUS "RUN_SITL ACTIVE")
+  add_definitions(-DRUN_SITL=1)
+endif()
 
 add_library(mav_asif_util SHARED src/lib/mav_asif_util.cpp)
 ament_target_dependencies(mav_asif_util Eigen3 rclcpp px4_msgs mav_asif_msgs px4_ros_com)

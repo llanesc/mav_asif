@@ -3,7 +3,7 @@ asif_node:
     mass1: 0.70
     mass2: 0.70
     gravity: 9.80665
-    asif_alpha: 1000.0
+    asif_alpha: 100.0
     safe_displacement:
       y: 1.0
       z: 1.0
@@ -26,7 +26,7 @@ asif_node:
     log_distribution_parameters:
       log_distribution_steps: 9
       spacing_factor: 0.01
-      corner_power: 7 #Odd integer
+      corner_power: 3 #Odd integer
     soft_min_parameters:
       fitness_multiplier: -10000000000000000.0
 
@@ -36,13 +36,13 @@ mav_control_router:
     mass2: 0.70
     gravity: 9.80665
     backup_dynamics:
-      spring_constantX: 100.0
+      spring_constantX: 60.0
       spring_constantYZ: 60.0
       spring_dampenerX: 7.0
-      spring_dampenerYZ: 7.0
+      spring_dampenerYZ: 6.0
       spring_saturation: 0.03
       roll_kp: 6.0
-      pitch_yaw_kp: 6.0
+      pitch_yaw_kp: 5.0
     thrust_model:
       mav_min_thrust: 0.1079 # collective thrust
       mav_max_thrust: 33.9212 # collective thrust

@@ -89,7 +89,6 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
                         } else {
                             asif_enabled_ = false;
                         }
-
                         if (mav_channels_.channels[POSITION_SETPOINT_CHANNEL - 1] >= 0.75) {
                             mav1_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
                             mav2_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
@@ -108,7 +107,10 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
                                                        [this](const VehicleOdometry::UniquePtr msg) {
                                                            mav2_odom_ = *msg;
                                                        });
-
+#ifdef RUN_SITL
+	mav_channels_.channels[OFFBOARD_ENABLE_CHANNEL - 1] = 1.0;
+	mav_channels_.channels[POSITION_SETPOINT_CHANNEL - 1] = 0.0;
+#endif
     auto timer_callback = [this]() -> void
     {
         position_controller();
@@ -116,6 +118,19 @@ MavControlRouter::MavControlRouter(uint8_t mav_id)
     };
 
     timer_ = create_wall_timer(10ms, timer_callback);
+#ifdef RUN_SITL
+	auto asif_activate_callback = [this]() -> void
+		{
+            mav1_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
+            mav2_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
+            mav_channels_.channels[ASIF_ENABLE_CHANNEL - 1] = 1.0;
+			mav_channels_.channels[POSITION_SETPOINT_CHANNEL - 1] = 1.0;
+			asif_enabled_ = true;
+			asif_activate_timer_->cancel();
+			asif_activate_timer_->reset();
+		};
+    asif_activate_timer_ = create_wall_timer(30s, asif_activate_callback);
+#endif
 }
 
 /**
@@ -167,7 +182,7 @@ void MavControlRouter::publish_vehicle_command(uint16_t command, float param1,
     msg.param1 = param1;
     msg.param2 = param2;
     msg.command = command;
-    msg.target_system = 1;
+    msg.target_system = 1 + mav_id_;
     msg.target_component = 1;
     msg.source_system = 1;
     msg.source_component = 1;
@@ -311,7 +326,11 @@ void MavControlRouter::position_controller() {
 }
 
 double MavControlRouter::compute_relative_thrust(const double &collective_thrust) const {
-    if (mav_battery_status_.voltage_filtered_v > 14.0) {
+#ifdef RUN_SITL
+	double rel_thrust = (collective_thrust - mav_min_thrust) / (mav_max_thrust - mav_min_thrust);
+	return (0.54358075 * rel_thrust + 0.25020242 * sqrt(3.6484 * rel_thrust + 0.00772641) - 0.021992793);
+#else
+	if (mav_battery_status_.voltage_filtered_v > 14.0) {
         double rel_thrust = (collective_thrust - mav_min_thrust) / (mav_max_thrust - mav_min_thrust);
         return (0.54358075 * rel_thrust + 0.25020242 * sqrt(3.6484 * rel_thrust + 0.00772641) - 0.021992793) *
                (1 - 0.0779 * (mav_battery_status_.voltage_filtered_v - 16.0));
@@ -319,4 +338,5 @@ double MavControlRouter::compute_relative_thrust(const double &collective_thrust
         double rel_thrust = (collective_thrust - mav_min_thrust) / (mav_max_thrust - mav_min_thrust);
         return (0.54358075 * rel_thrust + 0.25020242 * sqrt(3.6484 * rel_thrust + 0.00772641) - 0.021992793);
     }
+#endif
 }

@@ -76,10 +76,10 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
     Matrix<double, 2 * NUM_STATES, NUM_STATES> QMatrix_backup;
 	const auto t2 = std::chrono::steady_clock::now();
 	std::cout << "i: ";
-    for (int i = 0; i < backup_horizon_; i++) {
+    for (int i = 0; i <= backup_horizon_; i++) {
 
         if (i == backup_times_backup.front()) {
-			std::cout << i;
+			std::cout << i << ", ";
             barrier_soft_min(embedding_state_trajectory_, hs_min_backup, nullptr);
 
             if (hs_min_backup.back() > Psi_backup) {
@@ -125,7 +125,7 @@ int ASIF::QP(OSQPWorkspace *osqp_workspace, const px4_msgs::msg::VehicleOdometry
             }
         }
         ub_new[k] = (DPsi_backup * (f_x + w_temp) + asif_alpha_ * copysign(1.0, Psi_backup) * pow(abs(Psi_backup),
-                                                                                                  1.0));
+                                                                                                  3.0));
     }
 
 
@@ -206,16 +206,16 @@ void ASIF::barrier_soft_min(const embeddingState &embedding_state_trajectory,
             }
         }
 
-        barrier_function_corners(i) = barrier_function(reachable_set_corners.col(i));
+        barrier_function_corners(i) = soft_min_fitness_multiplier_*barrier_function(reachable_set_corners.col(i));
 
         if (barrier_function_corners(i) > barrier_function_corners(max_indx)) {
             max_indx = i;
         }
     }
 
-    double xstar = barrier_function_corners(max_indx) * soft_min_fitness_multiplier_;
+    double xstar = barrier_function_corners(max_indx);
 
-    barrier_function_corners = (barrier_function_corners.array() * soft_min_fitness_multiplier_ - xstar).exp();
+    barrier_function_corners = (barrier_function_corners.array() - xstar).exp();
     double sum_of_exp = barrier_function_corners.sum();
 
     // If we need to compute gradient
@@ -573,17 +573,19 @@ ASIF::decomposition_function(const embeddingState &embedding_state, const distur
 void ASIF::backupTrajectoryDistribution(const int &traj_t, const int &backup_steps, std::queue<int> &out) const {
     int n_right = static_cast<int>(round(0.5 * (-pow((((double) traj_t - (double) backup_steps / 2.0)), corner_power_) /
                                                 pow((double) backup_steps / 2.0, corner_power_) + 1) *
-                                         (double) log_distribution_steps_) + 1);
-    int n_left = log_distribution_steps_ - n_right + 1;
+                                         (double) (log_distribution_steps_ - 1)));
+    int n_left = log_distribution_steps_ - n_right;
 
-    auto log_right_step = static_cast<double>((exp(((double) backup_steps - (double) traj_t) * spacing_factor_) - 1) /
-                                              ((double) n_right - 1));
-    auto log_left_step = static_cast<double>((exp(((double) traj_t) * spacing_factor_) - 1) / ((double) n_left - 1));
-
+    auto log_left_step = static_cast<double>((exp(((double) traj_t) * spacing_factor_) - 1) / (double) (n_left - 1));
     for (int i = 0; i < n_left; i++) {
         out.push(static_cast<int>(round(log(1 + log_left_step * (double) i) / spacing_factor_)));
     }
-    for (int j = n_right - 1; j >= 0; j--) {
-        out.push(static_cast<int>(backup_horizon_ - round(log(1 + log_right_step * (double) j) / spacing_factor_)));
+
+    if (n_right != 0) {
+        auto log_right_step = static_cast<double>((exp(((double) backup_steps - (double) traj_t) * spacing_factor_) - 1) /
+                                                  (double) n_right);
+        for (int j = n_right-1; j >= 0; j--) {
+            out.push(static_cast<int>(backup_horizon_ - round(log(1 + log_right_step * (double) j) / spacing_factor_)));
+        }
     }
 }

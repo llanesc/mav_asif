@@ -21,8 +21,6 @@ class MavControlRouter: public rclcpp::Node {
 public:
 	MavControlRouter(uint8_t mav_id);
 
-
-
 private:
 	// ----------------------- Publishers --------------------------
 	rclcpp::Publisher<mav_asif_msgs::msg::AsifStatus>::SharedPtr asif_status_pub_;
@@ -64,7 +62,9 @@ private:
 	double pitch_yaw_kp_;
 	double mav_max_thrust;
 	double mav_min_thrust;
-
+#ifdef RUN_SITL
+	rclcpp::TimerBase::SharedPtr asif_activate_timer_;
+#endif
 
     std::array<double, 4> mav1_des_ = {0.0, 0.0, -2.0, 0.0}; //x, y, z, yaw
     std::array<double, 4> mav2_des_ = {0.0, 1.0, -1.0, 0.0}; //x, y, z, yaw
