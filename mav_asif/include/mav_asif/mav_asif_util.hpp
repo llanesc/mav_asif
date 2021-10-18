@@ -136,6 +136,7 @@ public:
 			this->declare_parameter("mass1");
 			this->declare_parameter("mass2");
 			this->declare_parameter("gravity");
+            this->declare_parameter("asif_alpha");
 			this->declare_parameter("safe_displacement.y");
 			this->declare_parameter("safe_displacement.z");
 			this->declare_parameter("backup_dynamics.spring_constant");
