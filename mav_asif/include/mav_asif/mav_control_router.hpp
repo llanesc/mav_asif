@@ -44,6 +44,7 @@ private:
     px4_msgs::msg::VehicleOdometry mav2_odom_;
 
 	// Class Variables
+	std::chrono::microseconds computation_time;
     rclcpp::TimerBase::SharedPtr timer_;
 	ASIF asif_solver_;
 	uint8_t mav_id_;

@@ -202,6 +202,7 @@ void MavControlRouter::set_control() {
     asif_status.position_controller[1].yaw_rate = mav2_control_.yaw_rate;
     asif_status.position_controller[1].thrust = mav2_control_.thrust;
 
+
     if (asif_enabled_) {
         asif_solver_.QP(&workspace,
                         mav1_odom_,
@@ -209,7 +210,8 @@ void MavControlRouter::set_control() {
                         mav1_control_,
                         mav2_control_,
                         asif_status.worst_barrier,
-                        asif_status.worst_corner_time);
+                        asif_status.worst_corner_time,
+                        computation_time);
         asif_status.active_set_invariance_filter[0].roll_rate = mav1_control_.roll_rate;
         asif_status.active_set_invariance_filter[0].pitch_rate = mav1_control_.pitch_rate;
         asif_status.active_set_invariance_filter[0].yaw_rate = mav1_control_.yaw_rate;
@@ -218,6 +220,7 @@ void MavControlRouter::set_control() {
         asif_status.active_set_invariance_filter[1].pitch_rate = mav2_control_.pitch_rate;
         asif_status.active_set_invariance_filter[1].yaw_rate = mav2_control_.yaw_rate;
         asif_status.active_set_invariance_filter[1].thrust = mav2_control_.thrust;
+        asif_status.asif_computation_time = computation_time.count();
     }
     asif_status.asif_active = asif_enabled_;
     asif_status.timestamp = this->now().nanoseconds();

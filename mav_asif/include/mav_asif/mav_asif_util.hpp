@@ -203,7 +203,8 @@ public:
 	       mavControl &mav1_control,
 	       mavControl &mav2_control,
 	       double &worst_barrier,
-	       double &worst_barrier_time);
+	       double &worst_barrier_time,
+	       std::chrono::microseconds &computation_time);
 
 private:
 	double gravity_;
